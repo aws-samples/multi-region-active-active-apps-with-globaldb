@@ -1,4 +1,4 @@
-# Active-Active Application with Write Forwarding
+# Multi-Region Active-Active Application with Amazon Aurora Global Database
 
 Building active-active web application using Amazon Aurora Global Database with write forwarding feature.
 
