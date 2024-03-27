@@ -1,0 +1,7 @@
+{
+    "TaxpayerSysId": 0,
+    "ProcessDate": 1,
+    "BusinessEventStatusCd": 2,
+    "BusinessEventOriginationTs": 3,
+    "PayloadTxt": 4
+}

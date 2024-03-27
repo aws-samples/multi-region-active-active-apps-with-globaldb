@@ -1,0 +1,79 @@
+{
+  "BusinessEventSysId": "",
+  "TaxpayersSysId": "",
+  "ProcessDate": "",
+  "UpdatedById": "EventHandler",
+  "BusinessEventTypeCd": 1,
+  "BusinessEventTransactionType": null,
+  "BusinessEventStatusCd": 2,
+  "BusinessEventSourceNm": "GMF",
+  "Payload": {
+    "transactionCd": "920",
+    "actionCode": null,
+    "primarySsn": "",
+    "validityDigit": 0,
+    "bigPayloadStr": "",
+    "dln": {
+      "blockingSeries": 999,
+      "controlDate": 70,
+      "docCode": 79,
+      "flc": 18,
+      "serialNum": 99,
+      "taxClass": 2,
+      "yearDigit": 3,
+      "_class": "DLN"
+    },
+    "details": {
+      "reason": 0,
+      "unpostableResolutionCode": "00",
+      "fileLevelType": "NOT_APPLICABLE",
+      "r08R12CommunicationInd": {
+        "numbericNibble": {
+          "nibbleValue": 0,
+          "isReadOnly": false
+        },
+        "zoneNibble": {
+          "nibbleValue": 0,
+          "isReadOnly": false
+        },
+        "isReadOnly": false,
+        "_class": "IndicatorByte"
+      },
+      "resquenceIndicator": {
+        "nibbleValue": 0,
+        "isReadOnly": false,
+        "_class": "IndicatorNibble"
+      },
+      "errorCode": "0",
+      "unpostableReason": "0",
+      "transactionIndicator": "0",
+      "resquenceCode": {
+        "nibbleValue": 0,
+        "isReadOnly": false,
+        "_class": "IndicatorNibble"
+      },
+      "recordIdx": 0,
+      "indentityProtectionPin": {
+        "nibbleValue": 0,
+        "isReadOnly": false,
+        "_class": "IndicatorNibble"
+      },
+      "apndPassId": "4045",
+      "scrsIndicator": {
+        "nibbleValue": 1,
+        "isReadOnly": false,
+        "_class": "IndicatorNibble"
+      },
+      "reserved2": "00",
+      "remittance": 0,
+      "postDelay": "0",
+      "mft32Indicator": {
+        "nibbleValue": 0,
+        "isReadOnly": false,
+        "_class": "IndicatorNibble"
+      }
+    }
+  },
+  "compressedPayload": false,
+  "S3URL": ""
+}
