@@ -64,7 +64,11 @@ def lambda_handler(event, context):
         s3Client.copy_object(Bucket=bucket, CopySource=source_prefix, Key=new_prefix)
         s3Client.delete_object( Bucket=bucket, Key=prefix)
 
-    noOfObjects = noOfObjectsInS3(bucket, bucket_prefix)
+    try:
+        noOfObjects = noOfObjectsInS3(bucket, bucket_prefix)
+    except KeyError:
+        noOfObjects = 0
+
     end = timer()
     deltaTime = timedelta(milliseconds=end - start)
     totalMilliseconds = deltaTime.microseconds
