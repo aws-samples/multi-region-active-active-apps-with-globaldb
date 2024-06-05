@@ -1,6 +1,6 @@
-# Multi-Region Active-Active Application with Amazon Aurora Global Database
+# Use Amazon Aurora Global Database to build resilient multi-Region web applications 
 
-Building active-active web application using Amazon Aurora Global Database with write forwarding feature.
+Building resilient multi-Region web application using Amazon Aurora Global Database with write forwarding feature.
 
 # Solution Architecture
 
@@ -52,13 +52,13 @@ using CDK.
     ```bash
     mkdir data1
     cd data1
-    aws s3 cp s3://aurora-global-db-blog/books_data1.zip books_data1.zip
+    aws s3 cp s3://aws-bigdata-blog/artifacts/amazon-aurora-global-database-multiRegion-webapps/books_data1.zip books_data1.zip
     unzip books_data1.zip
     aws  s3 cp --recursive . s3://<region1-s3-bucket>/book-review/reviews/ --exclude "*" --include "*json"
     cd ..
     mkdir data2
     cd data2
-    aws s3 cp s3://aurora-global-db-blog/books-data2.zip books_data2.zip 
+    aws s3 cp s3://aws-bigdata-blog/artifacts/amazon-aurora-global-database-multiRegion-webapps/books_data2.zip books_data2.zip 
     unzip books_data2.zip 
     aws  s3 cp --recursive . s3://<region2-s3-bucket>/book-review/reviews/ --exclude "*" --include "*json"
     cd ..
@@ -73,7 +73,7 @@ Follow the instructions in blog post to test the solution.
 
 ## Further Reading:
 
-- Blogpost: [Designing Human Review workflows using Amazon Translate and Amazon Augmented AI ](https://aws.amazon.com/blogs/machine-learning/designing-human-review-workflows-with-amazon-translate-and-amazon-augmented-ai/)
+- Blogpost: [Use Amazon Aurora Global Database to build resilient multi-Region web applications](https://aws.amazon.com/blogs/TBD/)
 
 ## License
 
