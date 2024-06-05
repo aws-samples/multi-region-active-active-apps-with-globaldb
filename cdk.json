@@ -62,7 +62,7 @@
     "@aws-cdk/aws-codepipeline-actions:useNewDefaultBranchForCodeCommitSource": true,
     "us-east-1": {
       "DBSecretName": "aurora/global-db-blog-secret",
-      "VpcID": "vpc-01a1123aa6a1be052"
+      "VpcID": "<your-vpc-id-region-1>"
     },
     "us-east-2": {
       "DBSecretName": "aurora/global-db-blog-secret",
