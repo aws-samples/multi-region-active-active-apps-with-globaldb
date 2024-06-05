@@ -20,8 +20,8 @@
 
 import {Duration, Stack, StackProps, Size, RemovalPolicy} from 'aws-cdk-lib';
 import {Function,Runtime, Code, LayerVersion, Architecture} from 'aws-cdk-lib/aws-lambda';
-import {Policy, Role, PolicyStatement, ServicePrincipal, ManagedPolicy, CompositePrincipal, User, ArnPrincipal, PolicyDocument} from 'aws-cdk-lib/aws-iam';
-import {Vpc, SecurityGroup, InterfaceVpcEndpoint, InterfaceVpcEndpointService, SubnetType, Peer, Port, CfnVPCEndpoint, TcpPort} from 'aws-cdk-lib/aws-ec2';
+import {Policy, Role, PolicyStatement, ServicePrincipal, ManagedPolicy, CompositePrincipal, User, ArnPrincipal, PolicyDocument, Effect} from 'aws-cdk-lib/aws-iam';
+import {Vpc, SecurityGroup, InterfaceVpcEndpoint, InterfaceVpcEndpointService, SubnetType, Peer, Port, CfnVPCEndpoint } from 'aws-cdk-lib/aws-ec2';
 import {Construct} from 'constructs';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
@@ -52,8 +52,8 @@ export class BookReviewStack extends Stack{
         let roleName: string = "bookreview-lambda-role-" + process.env.CDK_DEFAULT_REGION
         const lambdaRole = this.createLambdaRole(roleName, reviewsBucket.bucketName, dbSecretName, process.env.CDK_DEFAULT_REGION as string, process.env.CDK_DEFAULT_ACCOUNT as string);
 
-        reviewsBucket.addToResourcePolicy(new iam.PolicyStatement({
-                  effect : iam.Effect.ALLOW,
+        reviewsBucket.addToResourcePolicy(new PolicyStatement({
+                  effect : Effect.ALLOW,
                   actions: [
                     's3:GetObject',
                     's3:List*',
@@ -62,7 +62,7 @@ export class BookReviewStack extends Stack{
                     's3:CopyObject'
                   ],
                   resources: [reviewsBucket.arnForObjects('*')],
-                  principals: [lambdaRole.roleArn],
+                  principals: [ new ArnPrincipal(lambdaRole.roleArn) ],
                 }));
 
         //Create VPC endpoints
@@ -219,10 +219,10 @@ export class BookReviewStack extends Stack{
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             roleName: roleName,
             description: "Book review lambda role",
-            managedPolicies : [
-                      ManagedPolicy.fromAwsManagedPolicyName(`service-role/AWSLambdaVPCAccessExecutionRole`),
-                      ManagedPolicy.fromAwsManagedPolicyName(`service-role/AWSLambdaBasicExecutionRole`)
-            ]
+            //managedPolicies : [
+            //          ManagedPolicy.fromAwsManagedPolicyName(`service-role/AWSLambdaVPCAccessExecutionRole`),
+            //          ManagedPolicy.fromAwsManagedPolicyName(`service-role/AWSLambdaBasicExecutionRole`)
+            //]
         });
         const bucketArn = "arn:aws:s3:::" + bucketName;
         const lambdaPolicy = new Policy(this, 'book-review-lambda-policy', {
@@ -359,7 +359,7 @@ export class BookReviewStack extends Stack{
         });
 
         vpcEndpointSecurityGroup.addIngressRule(Peer.ipv4(vpc.vpcCidrBlock), Port.allTraffic(), 'Allow TCP traffic within VPC');
-        vpcEndpointSecurityGroup.addEgressRule(Peer.ipv4('127.0.0.1/32'),  new TcpPort(443), 'Allow TCP traffic within VPC');
+        vpcEndpointSecurityGroup.addEgressRule(Peer.ipv4('127.0.0.1/32'),  Port.tcp(443), 'Allow TCP traffic within VPC');
         return vpcEndpointSecurityGroup;
     }
 
