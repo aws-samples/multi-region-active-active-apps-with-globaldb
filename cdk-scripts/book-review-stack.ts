@@ -242,12 +242,31 @@ export class BookReviewStack extends Stack{
                     's3:CopyObject'
                 ]
             }),
-             new PolicyStatement({
+            new PolicyStatement({
                     resources: [secretArn],
                     actions: [
                         "secretsmanager:GetSecretValue"
                      ],
-                }),
+            }),
+            new PolicyStatement({
+                resources: ["*"],
+                actions: [
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DescribeSubnets",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ],
+            }),
+            new PolicyStatement({
+                resources: ["*book-review*"],
+                actions: [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                ],
+            }),
             ],
         });
 
