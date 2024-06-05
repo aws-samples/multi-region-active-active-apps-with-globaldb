@@ -21,7 +21,7 @@
 import {Duration, Stack, StackProps, Size, RemovalPolicy} from 'aws-cdk-lib';
 import {Function,Runtime, Code, LayerVersion, Architecture} from 'aws-cdk-lib/aws-lambda';
 import {Policy, Role, PolicyStatement, ServicePrincipal, ManagedPolicy, CompositePrincipal, User, ArnPrincipal, PolicyDocument} from 'aws-cdk-lib/aws-iam';
-import {Vpc, SecurityGroup, InterfaceVpcEndpoint, InterfaceVpcEndpointService, SubnetType, Peer, Port, CfnVPCEndpoint} from 'aws-cdk-lib/aws-ec2';
+import {Vpc, SecurityGroup, InterfaceVpcEndpoint, InterfaceVpcEndpointService, SubnetType, Peer, Port, CfnVPCEndpoint, TcpPort} from 'aws-cdk-lib/aws-ec2';
 import {Construct} from 'constructs';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
@@ -29,7 +29,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import {config as config} from "./config";
 import path = require('path');
 import { Pass, Choice } from 'aws-cdk-lib/aws-stepfunctions';
-import { Bucket, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
+import { Bucket, BlockPublicAccess, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 
 
 export class BookReviewStack extends Stack{
@@ -51,6 +51,19 @@ export class BookReviewStack extends Stack{
 
         let roleName: string = "bookreview-lambda-role-" + process.env.CDK_DEFAULT_REGION
         const lambdaRole = this.createLambdaRole(roleName, reviewsBucket.bucketName, dbSecretName, process.env.CDK_DEFAULT_REGION as string, process.env.CDK_DEFAULT_ACCOUNT as string);
+
+        reviewsBucket.addToResourcePolicy(new iam.PolicyStatement({
+                  effect : iam.Effect.ALLOW,
+                  actions: [
+                    's3:GetObject',
+                    's3:List*',
+                    's3:PutObject',
+                    's3:DeleteObject',
+                    's3:CopyObject'
+                  ],
+                  resources: [reviewsBucket.arnForObjects('*')],
+                  principals: [lambdaRole.roleArn],
+                }));
 
         //Create VPC endpoints
         const endpointSG = this.createVPCEndpointSecurityGroup(vpc);
@@ -192,7 +205,8 @@ export class BookReviewStack extends Stack{
         const s3BucketPrefix = "bookreviews-" + account + "-" + region;
         const s3Bucket = new Bucket(this, s3BucketPrefix, {
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-            enforceSSL: true
+            enforceSSL: true,
+            objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED
         });
 
         return s3Bucket;
@@ -326,6 +340,7 @@ export class BookReviewStack extends Stack{
         });
 
         vpcEndpointSecurityGroup.addIngressRule(Peer.ipv4(vpc.vpcCidrBlock), Port.allTraffic(), 'Allow TCP traffic within VPC');
+        vpcEndpointSecurityGroup.addEgressRule(Peer.ipv4('127.0.0.1/32'),  new TcpPort(443), 'Allow TCP traffic within VPC');
         return vpcEndpointSecurityGroup;
     }
 

@@ -63,6 +63,10 @@ def readJSONFileFromS3( bucketName, prefix ):
 def listFilesFromS3( bucketName, prefix, max_limit ):
     s3Client = getS3Client()
     print( "list file from bucket ", bucketName, " key ", prefix)
+    # We are not using S3 Paginator as we are expecting to process only 40 max objects at a time
+    # we are not using StepFunction Distributed Map mode which can process more than 40 child process concurrently
+    # For a production  ready code, we recommend considering paginator to process more than 40 ojects and use
+    # Distributed Map to increase concurrency
     data = s3Client.list_objects_v2(Bucket=bucketName, Prefix=prefix)
     print( "s3 list returned ", data['KeyCount'])
     #iterate thru the list to get the max number of objects
