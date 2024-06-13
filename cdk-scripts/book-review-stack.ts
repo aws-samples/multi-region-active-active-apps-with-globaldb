@@ -51,7 +51,10 @@ export class BookReviewStack extends Stack{
 
         let roleName: string = "bookreview-lambda-role-" + process.env.CDK_DEFAULT_REGION
         const lambdaRole = this.createLambdaRole(roleName, reviewsBucket.bucketName, dbSecretName, process.env.CDK_DEFAULT_REGION as string, process.env.CDK_DEFAULT_ACCOUNT as string);
+        const bucketObjectsArn = "arn:aws:s3:::" + reviewsBucket.bucketName + "/*";
+        const roleArn = "" + lambdaRole.roleArn + ""
 
+        /*
         reviewsBucket.addToResourcePolicy(new PolicyStatement({
                   effect : Effect.ALLOW,
                   actions: [
@@ -61,14 +64,14 @@ export class BookReviewStack extends Stack{
                     's3:DeleteObject',
                     's3:CopyObject'
                   ],
-                  resources: [reviewsBucket.arnForObjects('*')],
-                  principals: [ new ArnPrincipal(lambdaRole.roleArn) ],
+                  resources: [ bucketObjectsArn ],
+                  principals: [ new ArnPrincipal(roleArn) ],
                 }));
-
+        */
         //Create VPC endpoints
         const endpointSG = this.createVPCEndpointSecurityGroup(vpc);
-        this.createVPCEndpointForCWLogs(vpc, endpointSG);
-        this.createVPCEndpointForSecrets(vpc, endpointSG);
+        //this.createVPCEndpointForCWLogs(vpc, endpointSG);
+        //this.createVPCEndpointForSecrets(vpc, endpointSG);
         this.createVpcEndPointForS3(vpc);
 
 
@@ -89,6 +92,7 @@ export class BookReviewStack extends Stack{
             role: lambdaRole
         });
 
+
         //Create reviews post-process lambda
         const bookReviewPostProcessLambda = new Function(this, "book-reviews-postprocess-lambda", {
             functionName: "book-reviews-postprocess-lambda",
@@ -104,6 +108,7 @@ export class BookReviewStack extends Stack{
             code: Code.fromAsset(path.join(__dirname, '../lambda/bookreview_process_complete_step/app')),
             role: lambdaRole
         });
+
 
         // Creating the Lambda Layer
         const pysqlLayer = new LayerVersion(this, 'PYMySQLLayer', {
@@ -140,15 +145,11 @@ export class BookReviewStack extends Stack{
             role: lambdaRole,
             securityGroups: [sgDBProcessingLambda],
             vpc: vpc,
-            vpcSubnets: { subnetType: SubnetType.PUBLIC },
-            allowPublicSubnet: true
+            vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS }
         });
-        /*
-        vpc: vpc,
-            vpcSubnets: { subnetType: SubnetType.PUBLIC },
-            allowPublicSubnet: true,
 
-        */
+        const denyPolicy1 = this.createDenyNetworkPolicyForLambda( bookReviewDBProcessingLambda.functionArn );
+        lambdaRole.attachInlinePolicy( denyPolicy1 );
 
 
         //Define tasks for statemachine
@@ -212,6 +213,36 @@ export class BookReviewStack extends Stack{
         return s3Bucket;
     }
 
+    private createDenyNetworkPolicyForLambda( lambdaArn: string ) : Policy{
+        const lambdaDenyPolicy = new Policy(this, 'denyNetworkLambdaPolicy', {
+            policyName: `denyNetworkLambdaPolicy`,
+            statements: [
+            new PolicyStatement({
+                sid: "DenyLambdaCodeNetworking",
+                    resources: ["*"],
+                    effect: Effect.DENY,
+                    actions: [
+                        "ec2:CreateNetworkInterface",
+                        "ec2:DescribeNetworkInterfaces",
+                        "ec2:DescribeSubnets",
+                        "ec2:DeleteNetworkInterface",
+                        "ec2:AssignPrivateIpAddresses",
+                        "ec2:UnassignPrivateIpAddresses",
+                        "ec2:DescribeSecurityGroups",
+                        "ec2:DescribeSubnets",
+                        "ec2:DescribeVpcs"
+                    ],
+                    conditions: {
+                        ArnEquals: {
+                            "lambda:SourceFunctionArn" : lambdaArn
+                        }
+                    }
+                })
+                ]
+            });
+            return lambdaDenyPolicy;
+    }
+
     private createLambdaRole(roleName: string, bucketName: string, secretName: string, region: string, account: string): Role {
         const secretArn = `arn:aws:secretsmanager:${region}:${account}:secret:${secretName}*`;
 
@@ -219,10 +250,9 @@ export class BookReviewStack extends Stack{
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             roleName: roleName,
             description: "Book review lambda role",
-            //managedPolicies : [
-            //          ManagedPolicy.fromAwsManagedPolicyName(`service-role/AWSLambdaVPCAccessExecutionRole`),
-            //          ManagedPolicy.fromAwsManagedPolicyName(`service-role/AWSLambdaBasicExecutionRole`)
-            //]
+            managedPolicies : [
+                      ManagedPolicy.fromAwsManagedPolicyName(`service-role/AWSLambdaVPCAccessExecutionRole`)
+            ]
         });
         const bucketArn = "arn:aws:s3:::" + bucketName;
         const lambdaPolicy = new Policy(this, 'book-review-lambda-policy', {
@@ -247,30 +277,12 @@ export class BookReviewStack extends Stack{
                     actions: [
                         "secretsmanager:GetSecretValue"
                      ],
-            }),
-            new PolicyStatement({
-                resources: ["*"],
-                actions: [
-                    "ec2:CreateNetworkInterface",
-                    "ec2:DescribeNetworkInterfaces",
-                    "ec2:DescribeSubnets",
-                    "ec2:DeleteNetworkInterface",
-                    "ec2:AssignPrivateIpAddresses",
-                    "ec2:UnassignPrivateIpAddresses"
-                ],
-            }),
-            new PolicyStatement({
-                resources: ["*book-review*"],
-                actions: [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                ],
-            }),
+            })
             ],
         });
 
         lambdaRole.attachInlinePolicy(lambdaPolicy);
+        //lambdaRole.attachInlinePolicy(lambdaVPCNetworkPolicy);
         return lambdaRole;
     }
 
@@ -280,7 +292,7 @@ export class BookReviewStack extends Stack{
             service: new InterfaceVpcEndpointService(`com.amazonaws.${Stack.of(this).region}.logs`, 443),
             securityGroups: [ vpcEndpointSG ],
             subnets: vpc.selectSubnets({
-                subnetType: SubnetType.PUBLIC
+                subnetType: SubnetType.PRIVATE_WITH_EGRESS
              }),
             privateDnsEnabled: true,
         });
@@ -300,7 +312,7 @@ export class BookReviewStack extends Stack{
             service: new InterfaceVpcEndpointService(`com.amazonaws.${Stack.of(this).region}.secretsmanager`, 443),
             securityGroups: [ vpcEndpointSG ],
             subnets: vpc.selectSubnets({
-                subnetType: SubnetType.PUBLIC
+                subnetType: SubnetType.PRIVATE_WITH_EGRESS
              }),
             privateDnsEnabled: true,
         });
