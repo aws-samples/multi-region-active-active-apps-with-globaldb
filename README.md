@@ -28,6 +28,7 @@ using CDK.
 
 3. Change directory to layer directory to build the layer zip file
    ```bash
+   cd layer/
    ./buildPySQLLayer.sh
    ```
 
@@ -35,6 +36,7 @@ using CDK.
 
 5. Run CDK to deploy the solution in first region `us-east-1`
     ```bash
+   npm update
    export AWS_REIGON=us-east-1
    cdk deploy
     ```
@@ -46,24 +48,11 @@ using CDK.
 
 ## Test Data Setup 
 
-1. Run the below commands to download the book reviews testa data from blog bucket and upload them to the S3 buckets 
+1. Run the below command to download the book reviews testa data from blog bucket and upload them to the S3 buckets 
     created during deployment. You have to login to cloudformation console in both regions and refer to resources s
     sections to get the bucket names. Bucket name should contain `bookreview`
     ```bash
-    mkdir data1
-    cd data1
-    aws s3 cp s3://aws-bigdata-blog/artifacts/amazon-aurora-global-database-multiRegion-webapps/books_data1.zip books_data1.zip
-    unzip books_data1.zip
-    aws  s3 cp --recursive . s3://<region1-s3-bucket>/book-review/reviews/ --exclude "*" --include "*json"
-    cd ..
-    mkdir data2
-    cd data2
-    aws s3 cp s3://aws-bigdata-blog/artifacts/amazon-aurora-global-database-multiRegion-webapps/books_data2.zip books_data2.zip 
-    unzip books_data2.zip 
-    aws  s3 cp --recursive . s3://<region2-s3-bucket>/book-review/reviews/ --exclude "*" --include "*json"
-    cd ..
-    #cleanup resources
-    rm -rf data1/ data2/
+    ./test_data_setup.sh
     ```
 
 ## Execution Instructions

@@ -54,9 +54,9 @@ export class BookReviewStack extends Stack{
         const bucketObjectsArn = "arn:aws:s3:::" + reviewsBucket.bucketName + "/*";
         const roleArn = "" + lambdaRole.roleArn + ""
 
-        /*
+
         reviewsBucket.addToResourcePolicy(new PolicyStatement({
-                  effect : Effect.ALLOW,
+                  effect : Effect.DENY,
                   actions: [
                     's3:GetObject',
                     's3:List*',
@@ -64,14 +64,13 @@ export class BookReviewStack extends Stack{
                     's3:DeleteObject',
                     's3:CopyObject'
                   ],
-                  resources: [ bucketObjectsArn ],
-                  principals: [ new ArnPrincipal(roleArn) ],
+                  resources: [ "arn:aws:s3:::" + reviewsBucket.bucketName + "/*" ],
+                  notPrincipals: [ new ArnPrincipal(roleArn) ],
                 }));
-        */
         //Create VPC endpoints
         const endpointSG = this.createVPCEndpointSecurityGroup(vpc);
-        //this.createVPCEndpointForCWLogs(vpc, endpointSG);
-        //this.createVPCEndpointForSecrets(vpc, endpointSG);
+        this.createVPCEndpointForCWLogs(vpc, endpointSG);
+        this.createVPCEndpointForSecrets(vpc, endpointSG);
         this.createVpcEndPointForS3(vpc);
 
 
@@ -96,6 +95,8 @@ export class BookReviewStack extends Stack{
         //Create reviews post-process lambda
         const bookReviewPostProcessLambda = new Function(this, "book-reviews-postprocess-lambda", {
             functionName: "book-reviews-postprocess-lambda",
+
+
             runtime: Runtime.PYTHON_3_9,
             handler: "bookreview_process_complete.lambda_handler",
             memorySize: 512,
