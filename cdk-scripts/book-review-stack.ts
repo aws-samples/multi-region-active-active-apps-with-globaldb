@@ -49,24 +49,22 @@ export class BookReviewStack extends Stack{
 
         const reviewsBucket = this.createReviewsBucket(process.env.CDK_DEFAULT_ACCOUNT, process.env.CDK_DEFAULT_REGION);
 
-        let roleName: string = "bookreview-lambda-role-" + process.env.CDK_DEFAULT_REGION
+        let roleName: string = "bookreview-lambda-role-" + process.env.CDK_DEFAULT_REGION;
         const lambdaRole = this.createLambdaRole(roleName, reviewsBucket.bucketName, dbSecretName, process.env.CDK_DEFAULT_REGION as string, process.env.CDK_DEFAULT_ACCOUNT as string);
         const bucketObjectsArn = "arn:aws:s3:::" + reviewsBucket.bucketName + "/*";
         const roleArn = "" + lambdaRole.roleArn + ""
 
-
-        reviewsBucket.addToResourcePolicy(new PolicyStatement({
+        /*reviewsBucket.addToResourcePolicy(new PolicyStatement({
                   effect : Effect.DENY,
                   actions: [
-                    's3:GetObject',
-                    's3:List*',
-                    's3:PutObject',
-                    's3:DeleteObject',
-                    's3:CopyObject'
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:DeleteObject"
                   ],
-                  resources: [ "arn:aws:s3:::" + reviewsBucket.bucketName + "/*" ],
-                  notPrincipals: [ new ArnPrincipal(roleArn) ],
+                  resources: [ "arn:aws:s3:::"+reviewsBucket.bucketName+"/*","arn:aws:s3:::"+reviewsBucket.bucketName],
+                  notPrincipals: [ new ArnPrincipal(roleArn)]
                 }));
+         */
         //Create VPC endpoints
         const endpointSG = this.createVPCEndpointSecurityGroup(vpc);
         this.createVPCEndpointForCWLogs(vpc, endpointSG);
@@ -115,7 +113,7 @@ export class BookReviewStack extends Stack{
         const pysqlLayer = new LayerVersion(this, 'PYMySQLLayer', {
             compatibleRuntimes: [ Runtime.PYTHON_3_9 ],
             compatibleArchitectures: [ Architecture.X86_64 ],
-            code: Code.fromAsset(path.join(__dirname, '../layer/PYMySQLLayer.zip'))
+            code: Code.fromAsset(path.join(__dirname, '../layer/PyMySQLLayer.zip'))
         });
 
 
@@ -145,8 +143,7 @@ export class BookReviewStack extends Stack{
             code: Code.fromAsset(path.join(__dirname, '../lambda/bookreview_db_processing/app')),
             role: lambdaRole,
             securityGroups: [sgDBProcessingLambda],
-            vpc: vpc,
-            vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS }
+            vpc: vpc
         });
 
         const denyPolicy1 = this.createDenyNetworkPolicyForLambda( bookReviewDBProcessingLambda.functionArn );
@@ -292,9 +289,9 @@ export class BookReviewStack extends Stack{
             vpc,
             service: new InterfaceVpcEndpointService(`com.amazonaws.${Stack.of(this).region}.logs`, 443),
             securityGroups: [ vpcEndpointSG ],
-            subnets: vpc.selectSubnets({
-                subnetType: SubnetType.PRIVATE_WITH_EGRESS
-             }),
+            /*subnets: vpc.selectSubnets({
+                subnetType: SubnetType.PRIVATE_ISOLATED
+             }), */
             privateDnsEnabled: true,
         });
 
@@ -312,9 +309,9 @@ export class BookReviewStack extends Stack{
             vpc,
             service: new InterfaceVpcEndpointService(`com.amazonaws.${Stack.of(this).region}.secretsmanager`, 443),
             securityGroups: [ vpcEndpointSG ],
-            subnets: vpc.selectSubnets({
-                subnetType: SubnetType.PRIVATE_WITH_EGRESS
-             }),
+            /*subnets: vpc.selectSubnets({
+                subnetType: SubnetType.PRIVATE_ISOLATED
+             }), */
             privateDnsEnabled: true,
         });
 

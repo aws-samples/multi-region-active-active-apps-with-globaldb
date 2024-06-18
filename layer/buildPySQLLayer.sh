@@ -23,5 +23,5 @@ curl -O https://bootstrap.pypa.io/get-pip.py
 python3.9 get-pip.py --user
 mkdir python
 python3.9 -m pip install pymysql PyMySQL[rsa] -t python/
-zip -r PyMySQLlayer.zip python
+zip -r PyMySQLLayer.zip python
 #aws lambda publish-layer-version --layer-name PyMySQLlayer --zip-file fileb://PyMySQLlayer.zip --compatible-runtimes python3.9 --region us-east-1

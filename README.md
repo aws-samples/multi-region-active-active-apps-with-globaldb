@@ -37,20 +37,20 @@ using CDK.
 5. Run CDK to deploy the solution in first region `us-east-1`
     ```bash
    npm update
-   export AWS_REIGON=us-east-1
+   export AWS_REGION=us-east-1
    cdk deploy
     ```
 6. Run CDK to deploy the solution in second region `us-east-2`
     ```bash
-   export AWS_REIGON=us-east-2
+   export AWS_REGION=us-east-2
    cdk deploy
     ```
 
 ## Test Data Setup 
 
 1. Run the below command to download the book reviews testa data from blog bucket and upload them to the S3 buckets 
-    created during deployment. You have to login to cloudformation console in both regions and refer to resources s
-    sections to get the bucket names. Bucket name should contain `bookreview`
+    created during deployment. You have to login to cloudformation console in both regions and refer to resources 
+    sections to get the bucket names. Bucket name will start with `bookreview`
     ```bash
     ./test_data_setup.sh
     ```
