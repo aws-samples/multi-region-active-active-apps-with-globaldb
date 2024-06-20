@@ -62,7 +62,7 @@ Follow the instructions in blog post to test the solution.
 
 ## Further Reading:
 
-- Blogpost: [Use Amazon Aurora Global Database to build resilient multi-Region web applications](https://aws.amazon.com/blogs/TBD/)
+- Blogpost: [Use Amazon Aurora Global Database to build resilient multi-Region web applications](https://aws.amazon.com/blogs/blogs/database/use-amazon-aurora-global-database-to-build-resilient-multi-region-applications/)
 
 ## License
 
